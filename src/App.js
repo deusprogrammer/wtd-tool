@@ -1,6 +1,8 @@
 import './App.css';
 import React, {useState} from 'react';
 
+let isTalking = false;
+
 let App = (props) => {
     const [videoSource, setVideoSource] = useState("");
     const [subs, setSubs] = useState([]);
@@ -8,7 +10,13 @@ let App = (props) => {
     const [currentText, setCurrentText] = useState("");
     const [videoStart, setVideoStart] = useState(0);
     const [videoEnd, setVideoEnd] = useState(0);
+    const [substitution, setSubstitution] = useState("");
+
     const videoElement = React.createRef();
+
+    // window.speechSynthesis.getVoices().forEach((voice) => {
+    //     console.log(voice.name, voice.default ? voice.default :'');
+    // });
 
     let newSub = (startTime) => {
         setSubs([...subs, {
@@ -74,12 +82,58 @@ let App = (props) => {
         let index = 0;
         for (let subtitle of subs) {
             if (e.target.currentTime > subtitle.startTime && e.target.currentTime < subtitle.endTime) {
-                setCurrentSub(index);
-                setCurrentText(subtitle.text);
+                if (index !== currentSub) {
+                    if (isTalking) {
+                        console.log("PAUSE");
+                        videoElement.current.pause();
+                        return;
+                    }
+
+                    if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
+                        videoElement.current.volume = 0.0;
+
+                        let voice = null;
+                        isTalking = true;
+
+                        console.log(subtitle.text);
+
+                        if (subtitle.text === "[male_dub]") {
+                            console.log("MAN VOICE");
+                            //voice = window.speechSynthesis.getVoices()[3];
+                            voice = window.speechSynthesis.getVoices().find((element) => {
+                                return element.name === "Microsoft David Desktop - English (United States)";
+                            });
+                        } else {
+                            console.log("WOMAN VOICE");
+                            //voice = window.speechSynthesis.getVoices()[2];
+                            voice = window.speechSynthesis.getVoices().find((element) => {
+                                return element.name === "Microsoft Zira Desktop - English (United States)";
+                            });
+                        }
+
+                        let msg = new SpeechSynthesisUtterance();
+                        msg.voice = voice;
+                        msg.text = substitution;
+                        msg.onend = () => {
+                            console.log("STOPPING TTS");
+                            isTalking = false;
+                            let ve = document.getElementById("videoElement");
+                            ve.volume = 1.0;
+                            ve.play();
+                        }
+                        window.speechSynthesis.speak(msg);
+                        setCurrentText(substitution);
+                    } else {
+                        setCurrentText(subtitle.text);
+                    }
+
+                    setCurrentSub(index);
+                }
                 return;
             }
             index++;
         }
+
         setCurrentText("");
     }
 
@@ -91,87 +145,92 @@ let App = (props) => {
                     <div style={{display: "table", margin: "auto"}}>
                         <div style={{display: "table-cell", verticalAlign: "middle"}}>
                             <h3>Video</h3>
-                            <video ref={videoElement} width="300px" src={videoSource} controls onTimeUpdate={updateSubtitle} onLoad={() => {setVideoEnd(videoElement.current.duration)}} />
+                            <video id="videoElement" ref={videoElement} width="300px" src={videoSource} controls onTimeUpdate={updateSubtitle} onLoad={() => {setVideoEnd(videoElement.current.duration)}} />
                             <div style={{minHeight: "200px"}}>{currentText}</div>
+                            <label>Substitution</label><input type="text" onChange={(e) => {setSubstitution(e.target.value)}} />
                         </div>
                         <div style={{display: "table-cell"}}>
                             <div>
                                 <h3>Video Information</h3>
                                 <table style={{margin: "auto"}}>
-                                    <tr>
-                                        <td>
-                                            <button type="button" onClick={() => {setVideoStart(videoElement.current.currentTime)}}>Set Video Start</button>
-                                        </td>
-                                        <td>
-                                            <span>{convertSecondsToTimestamp(videoStart)}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <button type="button" onClick={() => {scrub(videoStart)}}>Show Video Start</button>
-                                        </td>
-                                        <td>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <button type="button" onClick={() => {setVideoEnd(videoElement.current.currentTime)}}>Set Video End</button>
-                                        </td>
-                                        <td>
-                                            <span>{convertSecondsToTimestamp(videoEnd)}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <button type="button" onClick={() => {scrub(videoEnd)}}>Show End</button>
-                                        </td>
-                                        <td>
-                                        </td>
-                                    </tr>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <button type="button" onClick={() => {setVideoStart(videoElement.current.currentTime)}}>Set Video Start</button>
+                                            </td>
+                                            <td>
+                                                <span>{convertSecondsToTimestamp(videoStart)}</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <button type="button" onClick={() => {scrub(videoStart)}}>Show Video Start</button>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <button type="button" onClick={() => {setVideoEnd(videoElement.current.currentTime)}}>Set Video End</button>
+                                            </td>
+                                            <td>
+                                                <span>{convertSecondsToTimestamp(videoEnd)}</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <button type="button" onClick={() => {scrub(videoEnd)}}>Show End</button>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
                             <div>
                                 <h3>Current Subtitle</h3>
                                 { currentSub !== null ?
                                     <table style={{margin: "auto"}}>
-                                        <tr>
-                                            <td>
-                                                <button type="button" onClick={() => {setStart(videoElement.current.currentTime)}}>Set Start</button>
-                                            </td>
-                                            <td>
-                                                <span>{convertSecondsToTimestamp(subs[currentSub].startTime)}</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button type="button" onClick={() => {scrub(subs[currentSub].startTime)}}>Show Start</button>
-                                            </td>
-                                            <td>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button type="button" onClick={() => {setEnd(videoElement.current.currentTime)}}>Set End</button>
-                                            </td>
-                                            <td>
-                                                <span>{convertSecondsToTimestamp(subs[currentSub].endTime)}</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button type="button" onClick={() => {scrub(subs[currentSub].endTime)}}>Show End</button>
-                                            </td>
-                                            <td>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <label>Subtitle:</label>
-                                            </td>
-                                            <td>
-                                            <input type="text" value={subs[currentSub].text} onChange={(e) => {setText(e.target.value)}} />
-                                            </td>
-                                        </tr>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <button type="button" onClick={() => {setStart(videoElement.current.currentTime)}}>Set Start</button>
+                                                </td>
+                                                <td>
+                                                    <span>{convertSecondsToTimestamp(subs[currentSub].startTime)}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <button type="button" onClick={() => {scrub(subs[currentSub].startTime)}}>Show Start</button>
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <button type="button" onClick={() => {setEnd(videoElement.current.currentTime)}}>Set End</button>
+                                                </td>
+                                                <td>
+                                                    <span>{convertSecondsToTimestamp(subs[currentSub].endTime)}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <button type="button" onClick={() => {scrub(subs[currentSub].endTime)}}>Show End</button>
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label>Subtitle:</label>
+                                                </td>
+                                                <td>
+                                                <input type="text" value={subs[currentSub].text} onChange={(e) => {setText(e.target.value)}} />
+                                                </td>
+                                            </tr>
+                                        </tbody>
                                     </table>
                                     :
                                     null
@@ -201,6 +260,7 @@ let App = (props) => {
                                                         backgroundColor: index === currentSub ? "blue" : "white", 
                                                         color: index === currentSub ? "white" :"black"
                                                     }}
+                                                    key={`sub${index}`}
                                                     className="subs"
                                                     onClick={() => {setCurrentSub(index); scrub(sub.startTime);}}>
                                                         <td>{index + 1}</td><td>{convertSecondsToTimestamp(sub.startTime)}</td><td>==&gt;</td><td>{convertSecondsToTimestamp(sub.endTime)}</td><td style={{width: "150px", textOverflow: "ellipsis"}}>"{sub.text}"</td>
