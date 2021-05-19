@@ -14,6 +14,14 @@ let App = (props) => {
 
     const videoElement = React.createRef();
 
+    const maleVoice = window.speechSynthesis.getVoices().find((element) => {
+        return element.name === "Microsoft David Desktop - English (United States)";
+    });
+
+    const femaleVoice = voice = window.speechSynthesis.getVoices().find((element) => {
+        return element.name === "Microsoft Zira Desktop - English (United States)";
+    });
+
     // window.speechSynthesis.getVoices().forEach((voice) => {
     //     console.log(voice.name, voice.default ? voice.default :'');
     // });
@@ -99,16 +107,10 @@ let App = (props) => {
 
                         if (subtitle.text === "[male_dub]") {
                             console.log("MAN VOICE");
-                            //voice = window.speechSynthesis.getVoices()[3];
-                            voice = window.speechSynthesis.getVoices().find((element) => {
-                                return element.name === "Microsoft David Desktop - English (United States)";
-                            });
+                            voice = maleVoice;
                         } else {
                             console.log("WOMAN VOICE");
-                            //voice = window.speechSynthesis.getVoices()[2];
-                            voice = window.speechSynthesis.getVoices().find((element) => {
-                                return element.name === "Microsoft Zira Desktop - English (United States)";
-                            });
+                            voice = femaleVoice;
                         }
 
                         let msg = new SpeechSynthesisUtterance();
