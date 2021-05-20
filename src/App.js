@@ -15,9 +15,11 @@ let App = (props) => {
         <div className="App">
             <ToastContainer />
             <Router>
+                <h1>What the Dub Tools</h1>
                 <div style={{textAlign: "center"}}>
                     <Link to={`${process.env.PUBLIC_URL}/videos`}>Video List</Link>|<Link to={`${process.env.PUBLIC_URL}/editor/standalone`}>Standalone Editor</Link>
                 </div>
+                <hr/>
                 <Switch>
                     <Route exact path={`${process.env.PUBLIC_URL}/`} component={Home} />
                     <Route exact path={`${process.env.PUBLIC_URL}/videos`} component={VideoList} />

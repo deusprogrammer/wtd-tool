@@ -165,7 +165,7 @@ let SubtitleEditor = (props) => {
     return (
         <div className="App">
             <ToastContainer />
-            <h1>What the Dub Tool</h1>
+            <h3>Twitch Editor</h3>
             { videoSource ?
                 <div>
                     <div style={{display: "table", margin: "auto"}}>
