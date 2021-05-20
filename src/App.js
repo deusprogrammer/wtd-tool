@@ -23,7 +23,7 @@ let App = (props) => {
                     <Link to={`${process.env.PUBLIC_URL}/editor/standalone`}>Standalone Editor</Link>
                 </div>
                 <hr/>
-                <div style={{minHeight: "500px"}}>
+                <div>
                     <Switch>
                         <Route exact path={`${process.env.PUBLIC_URL}/`} component={Home} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos`} component={VideoList} />
@@ -32,8 +32,10 @@ let App = (props) => {
                     </Switch>
                 </div>
                 <hr/>
-                <div>This product is still in early access.</div>
-                <div>Contribute to the project at <a href="https://github.com/deusprogrammer/wtd-tool">https://github.com/deusprogrammer/wtd-tool</a></div>
+                <div style={{position: "absolute", bottom: "0px"}}>
+                    <div>This product is still in early access.</div>
+                    <div>Contribute to the project at <a href="https://github.com/deusprogrammer/wtd-tool">https://github.com/deusprogrammer/wtd-tool</a></div>
+                </div>
             </Router>
         </div>
     );
