@@ -28,6 +28,7 @@ let App = (props) => {
                     <Route exact path={`${process.env.PUBLIC_URL}/editor`} component={SubtitleEditor} />
                     <Route exact path={`${process.env.PUBLIC_URL}/editor/standalone`} component={StandAloneEditor} />
                 </Switch>
+                <hr/>
                 <div>This product is still in early access.</div>
                 <div>Contribute to the project at <a href="https://github.com/deusprogrammer/wtd-tool">https://github.com/deusprogrammer/wtd-tool</a></div>
             </Router>
