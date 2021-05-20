@@ -16,6 +16,7 @@ let App = (props) => {
             <ToastContainer />
             <Router>
                 <h1>What the Dub Tools</h1>
+                <hr/>
                 <div>v1.0.0a</div>
                 <hr/>
                 <div style={{textAlign: "center"}}>
