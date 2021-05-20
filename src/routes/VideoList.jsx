@@ -10,7 +10,7 @@ let VideoList = () => {
             }
         });
         setVideos(result.data);
-    });
+    }, []);
 
     return (
         <div>
