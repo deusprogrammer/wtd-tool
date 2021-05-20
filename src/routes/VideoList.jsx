@@ -27,7 +27,7 @@ let VideoList = () => {
             <h3>Video List</h3>
             {videos.map((video) => {
                 return (
-                    <div><a onClick={() => {getZip(video.id, video.name)}} download>{video.name}</a></div>
+                    <div style={{cursor: "pointer"}} onClick={() => {getZip(video._id, video.name)}} download>{video.name}</div>
                 )
             })}
         </div>
