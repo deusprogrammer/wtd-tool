@@ -19,7 +19,7 @@ let VideoList = () => {
                 "X-Access-Token": localStorage.getItem("accessToken")
             }
         });
-        saveAs(zip.data, `${name}.zip`);
+        saveAs(zip.data.dataUri, `${name}.zip`);
     }
 
     return (
