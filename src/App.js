@@ -19,14 +19,9 @@ let App = (props) => {
                 <hr/>
                 <div>v1.0.0a</div>
                 <hr/>
-                <div style={{textAlign: "center"}}>
-                    <div>Menu</div>
-                    <Link to={`${process.env.PUBLIC_URL}/editor/standalone`}>Standalone Editor</Link>
-                </div>
-                <hr/>
                 <div style={{minHeight: "50vh"}}>
                     <Switch>
-                        <Route exact path={`${process.env.PUBLIC_URL}/`} component={Home} />
+                        <Route exact path={`${process.env.PUBLIC_URL}/`} component={StandAloneEditor} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos`} component={VideoList} />
                         <Route exact path={`${process.env.PUBLIC_URL}/editor`} component={SubtitleEditor} />
                         <Route exact path={`${process.env.PUBLIC_URL}/editor/standalone`} component={StandAloneEditor} />
