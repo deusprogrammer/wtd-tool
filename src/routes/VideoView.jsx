@@ -13,26 +13,13 @@ let VideoView = (props) => {
         });
 
         setVideoDetails(result.data);
-        getVideo();
     }, []);
-
-    let getVideo = async () => {
-        let results = await axios.get(`https://deusprogrammer.com/api/dubs/videos/${props.match.params.id}/mp4`, {
-            responseType: 'arraybuffer',
-            headers: {
-                "X-Access-Token": localStorage.getItem("accessToken")
-            }
-        });
-
-        let base64ByteArray = Buffer.from(results.data, 'binary').toString('base64');
-        setVideoDataUri(`data:video/mp4;base64,${base64ByteArray}`);
-    }
 
     return (
         <div>
             {videoDetails ? <div>
                 <div>Name: {videoDetails.name}</div>
-                <div><video src={videoDataUri} controls/></div>
+                <div><video src={videoDetails.videoUrl} controls/></div>
                 <pre>{convertSubtitlesToSrt(videoDetails.subtitles)}</pre>
             </div> : null}
         </div>
