@@ -13,7 +13,11 @@ let VideoList = () => {
     }, []);
 
     let getZip = (id, name) => {
-        let zip = await axios.get(`https://deusprogrammer.com/api/dubs/videos/${id}/zip`);
+        let zip = await axios.get(`https://deusprogrammer.com/api/dubs/videos/${id}/zip`, {
+            headers: {
+                "X-Access-Token": localStorage.getItem("accessToken")
+            }
+        });
         saveAs(zip.data, `${name}.zip`);
     }
 
