@@ -87,6 +87,12 @@ let StandAloneEditor = (props) => {
         let index = 0;
         for (let subtitle of subs) {
             if (e.target.currentTime > subtitle.startTime && e.target.currentTime < subtitle.endTime) {
+                if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
+                    videoElement.current.volume = 0.0;
+                } else {
+                    videoElement.current.volume = 1.0;
+                }
+
                 if (!currentText || index !== currentSub) {
                     if (isTalking) {
                         console.log("PAUSE");
@@ -103,25 +109,26 @@ let StandAloneEditor = (props) => {
                         console.log(subtitle.text);
 
                         if (subtitle.text === "[male_dub]") {
-                            console.log("MAN VOICE");
                             voice = maleVoice;
                         } else {
-                            console.log("WOMAN VOICE");
                             voice = femaleVoice;
                         }
 
-                        let msg = new SpeechSynthesisUtterance();
-                        msg.voice = voice;
-                        msg.text = substitution;
-                        msg.onend = () => {
-                            console.log("STOPPING TTS");
-                            isTalking = false;
-                            let ve = document.getElementById("videoElement");
-                            ve.volume = 1.0;
-                            ve.play();
+                        if (substitution) {
+                            setCurrentText(substitution);
+                            let msg = new SpeechSynthesisUtterance();
+                            msg.voice = voice;
+                            msg.text = substitution;
+                            msg.onend = () => {
+                                isTalking = false;
+                                let ve = document.getElementById("videoElement");
+                                ve.volume = 1.0;
+                                ve.play();
+                            }
+                            window.speechSynthesis.speak(msg);
+                        } else {
+                            setCurrentText("<Missing audio>");
                         }
-                        window.speechSynthesis.speak(msg);
-                        setCurrentText(substitution);
                     } else {
                         setCurrentText(subtitle.text);
                     }

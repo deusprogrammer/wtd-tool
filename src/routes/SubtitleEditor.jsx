@@ -116,18 +116,21 @@ let SubtitleEditor = (props) => {
                             voice = femaleVoice;
                         }
 
-                        let msg = new SpeechSynthesisUtterance();
-                        msg.voice = voice;
-                        msg.text = substitution;
-                        msg.onend = () => {
-                            console.log("STOPPING TTS");
-                            isTalking = false;
-                            let ve = document.getElementById("videoElement");
-                            ve.volume = 1.0;
-                            ve.play();
+                        if (substitution) {
+                            setCurrentText(substitution);
+                            let msg = new SpeechSynthesisUtterance();
+                            msg.voice = voice;
+                            msg.text = substitution;
+                            msg.onend = () => {
+                                isTalking = false;
+                                let ve = document.getElementById("videoElement");
+                                ve.volume = 1.0;
+                                ve.play();
+                            }
+                            window.speechSynthesis.speak(msg);
+                        } else {
+                            setCurrentText("<Missing audio>");
                         }
-                        window.speechSynthesis.speak(msg);
-                        setCurrentText(substitution);
                     } else {
                         setCurrentText(subtitle.text);
                     }
