@@ -23,6 +23,7 @@ let App = (props) => {
                     <Switch>
                         <Route exact path={`${process.env.PUBLIC_URL}/`} component={StandAloneEditor} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos`} component={VideoList} />
+                        <Route exact path={`${process.env.PUBLIC_URL}/videos/:id`} component={VideoView} />
                         <Route exact path={`${process.env.PUBLIC_URL}/editor`} component={SubtitleEditor} />
                         <Route exact path={`${process.env.PUBLIC_URL}/editor/standalone`} component={StandAloneEditor} />
                     </Switch>

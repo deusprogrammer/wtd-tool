@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import {saveAs} from 'file-saver';
+import {Link} from 'react-router-dom';
 
 let VideoList = () => {
     const [videos, setVideos] = useState([]);
@@ -27,7 +28,11 @@ let VideoList = () => {
             <h3>Video List</h3>
             {videos.map((video) => {
                 return (
-                    <div style={{cursor: "pointer"}} onClick={() => {getZip(video._id, video.name)}} download>{video.name}</div>
+                    <div style={{cursor: "pointer"}} onClick={() => {getZip(video._id, video.name)}} download>
+                        {video.name}
+                        <button type="button" onClick={() => {navigator.clipboard.writeText(video._id)}}>Get ID</button>
+                        <Link to={`${process.env.PUBLIC_URL}/videos/${video._id}`}><button type="button">Open Details</button></Link>
+                    </div>
                 )
             })}
         </div>
