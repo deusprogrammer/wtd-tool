@@ -17,7 +17,7 @@ let VideoList = () => {
             <h3>Video List</h3>
             {videos.map((video) => {
                 return (
-                    <div><a href={`https://deusprogrammer/api/dubs/videos/${video._id}/zip`} download>{video.name}</a></div>
+                    <div><a href={`https://deusprogrammer.com/api/dubs/videos/${video._id}/zip`} download>{video.name}</a></div>
                 )
             })}
         </div>
