@@ -17,7 +17,7 @@ let VideoView = (props) => {
     }, []);
 
     let getVideo = async () => {
-        let results = await axios.get(`https://deusprogrammer.com/api/dubs/videos/${videoDetails._id}/mp4`, {
+        let results = await axios.get(`https://deusprogrammer.com/api/dubs/videos/${props.match.params.id}/mp4`, {
             headers: {
                 "X-Access-Token": localStorage.getItem("accessToken")
             }
