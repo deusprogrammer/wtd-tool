@@ -104,7 +104,6 @@ let SubtitleEditor = (props) => {
                         videoElement.current.volume = 0.0;
 
                         let voice = null;
-                        isTalking = true;
 
                         console.log(subtitle.text);
 
@@ -117,6 +116,7 @@ let SubtitleEditor = (props) => {
                         }
 
                         if (substitution) {
+                            isTalking = true;
                             setCurrentText(substitution);
                             let msg = new SpeechSynthesisUtterance();
                             msg.voice = voice;
