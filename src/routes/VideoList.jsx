@@ -12,12 +12,17 @@ let VideoList = () => {
         setVideos(result.data);
     }, []);
 
+    let getZip = (id, name) => {
+        let zip = await axios.get(`https://deusprogrammer.com/api/dubs/videos/${id}/zip`);
+        saveAs(zip.data, `${name}.zip`);
+    }
+
     return (
         <div>
             <h3>Video List</h3>
             {videos.map((video) => {
                 return (
-                    <div><a href={`https://deusprogrammer.com/api/dubs/videos/${video._id}/zip`} download>{video.name}</a></div>
+                    <div><a onClick={() => {getZip(video.id, video.name)}} download>{video.name}</a></div>
                 )
             })}
         </div>
