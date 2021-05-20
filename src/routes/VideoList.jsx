@@ -28,9 +28,10 @@ let VideoList = () => {
             <h3>Video List</h3>
             {videos.map((video) => {
                 return (
-                    <div style={{cursor: "pointer"}} onClick={() => {getZip(video._id, video.name)}} download>
-                        {video.name}
+                    <div>
+                        {video.name}&nbsp;
                         <button type="button" onClick={() => {navigator.clipboard.writeText(video._id)}}>Get ID</button>
+                        <button type="button" onClick={() => {getZip(video._id, video.name)}}>Download Zip</button>
                         <Link to={`${process.env.PUBLIC_URL}/videos/${video._id}`}><button type="button">Open Details</button></Link>
                     </div>
                 )
