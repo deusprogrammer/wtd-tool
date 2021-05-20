@@ -16,6 +16,8 @@ let App = (props) => {
             <ToastContainer />
             <Router>
                 <h1>What the Dub Tools</h1>
+                <div>v1.0.0a</div>
+                <hr/>
                 <div style={{textAlign: "center"}}>
                     <Link to={`${process.env.PUBLIC_URL}/videos`}>Video List</Link>|<Link to={`${process.env.PUBLIC_URL}/editor/standalone`}>Standalone Editor</Link>
                 </div>
@@ -26,6 +28,8 @@ let App = (props) => {
                     <Route exact path={`${process.env.PUBLIC_URL}/editor`} component={SubtitleEditor} />
                     <Route exact path={`${process.env.PUBLIC_URL}/editor/standalone`} component={StandAloneEditor} />
                 </Switch>
+                <div>This product is still in early access.</div>
+                <div>Contribute to the project at <a href="https://github.com/deusprogrammer/wtd-tool">https://github.com/deusprogrammer/wtd-tool</a></div>
             </Router>
         </div>
     );
