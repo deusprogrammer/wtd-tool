@@ -19,10 +19,11 @@ let App = (props) => {
                 <div>v1.0.0a</div>
                 <hr/>
                 <div style={{textAlign: "center"}}>
-                    <Link to={`${process.env.PUBLIC_URL}/videos`}>Video List</Link>|<Link to={`${process.env.PUBLIC_URL}/editor/standalone`}>Standalone Editor</Link>
+                    <div>Menu</div>
+                    <Link to={`${process.env.PUBLIC_URL}/editor/standalone`}>Standalone Editor</Link>
                 </div>
                 <hr/>
-                <div style={{minHeight: "800px"}}>
+                <div style={{minHeight: "500px"}}>
                     <Switch>
                         <Route exact path={`${process.env.PUBLIC_URL}/`} component={Home} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos`} component={VideoList} />
