@@ -6,7 +6,7 @@ import {ToastContainer, toast} from 'react-toastify';
 import SubtitleEditor from './routes/SubtitleEditor';
 import StandAloneEditor from './routes/StandAloneEditor';
 import VideoList from './routes/VideoList';
-import Home from './routes/Home';
+import VideoView from './routes/VideoView';
 
 import 'react-toastify/dist/ReactToastify.css';
 
