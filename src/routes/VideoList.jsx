@@ -4,7 +4,11 @@ import axios from 'axios';
 let VideoList = () => {
     const [videos, setVideos] = useState([]);
     useEffect(async() => {
-        let result = await axios.get("http://localhost:8080/videos");
+        let result = await axios.get("https://deusprogrammer.com/api/dubs/videos", {
+            headers: {
+                "X-Access-Token": localStorage.getItem("accessToken")
+            }
+        });
         setVideos(result.data);
     });
 

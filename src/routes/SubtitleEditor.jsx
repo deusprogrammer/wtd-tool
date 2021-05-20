@@ -145,13 +145,14 @@ let SubtitleEditor = (props) => {
     let upload = async () => {
         try {
             setButtonsDisabled(true);
-            await axios.post("http://localhost:8080/videos", {
+            await axios.post("https://deusprogrammer.com/api/dubs/videos", {
                 name: videoName,
                 subtitles: subs,
                 videoPayload: videoSource.substring(videoSource.indexOf(',') + 1)
             }, {
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "X-Access-Token": localStorage.getItem("accessToken")
                 }
             });
             setButtonsDisabled(false);
