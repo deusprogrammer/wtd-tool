@@ -4,7 +4,7 @@ import { convertSubtitlesToSrt } from '../util/VideoTools';
 
 let VideoView = (props) => {
     const [videoDetails, setVideoDetails] = useState({});
-    useEffect(() =>{
+    useEffect(async () =>{
         let result = await axios.get(`https://deusprogrammer.com/api/dubs/videos/${props.match.params.id}`, {
             headers: {
                 "X-Access-Token": localStorage.getItem("accessToken")
