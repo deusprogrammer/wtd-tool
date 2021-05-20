@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import {saveAs} from 'file-saver';
 import {Link} from 'react-router-dom';
+import {toast} from 'react-toastify';
 
 let VideoList = () => {
     const [videos, setVideos] = useState([]);
@@ -30,7 +31,7 @@ let VideoList = () => {
                 return (
                     <div>
                         {video.name}&nbsp;
-                        <button type="button" onClick={() => {navigator.clipboard.writeText(video._id)}}>Get ID</button>
+                        <button type="button" onClick={() => {navigator.clipboard.writeText(video._id);toast("ID Copied!", {type: "info"})}}>Get ID</button>
                         <button type="button" onClick={() => {getZip(video._id, video.name)}}>Download Zip</button>
                         <Link to={`${process.env.PUBLIC_URL}/videos/${video._id}`}><button type="button">Open Details</button></Link>
                     </div>
