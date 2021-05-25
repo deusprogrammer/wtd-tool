@@ -1,17 +1,19 @@
 import React, {useState} from 'react';
 import {ToastContainer, toast} from 'react-toastify';
+import {createWebVttDataUri, createPayloadZip} from '../util/VideoTools';
 
-import {createPayloadZip} from '../util/VideoTools';
-
-let isTalking = false;
-
-let StandAloneEditor = (props) => {
+let ZipEditor = (props) => {
     const [videoSource, setVideoSource] = useState("");
     const [subs, setSubs] = useState([]);
+    const [videoName, setVideoName] = useState("Video");
     const [currentSub, setCurrentSub] = useState(null);
     const [currentText, setCurrentText] = useState("");
     const [substitution, setSubstitution] = useState("");
     const [buttonsDisabled, setButtonsDisabled] = useState(false);
+    const [isTalking, setIsTalking] = useState(false);
+
+    const [videoLength, setVideoLength] = useState(0);
+    const [currentPosition, setCurrentPosition] = useState(0);
 
     const videoElement = React.createRef();
 
@@ -81,11 +83,13 @@ let StandAloneEditor = (props) => {
 
     let scrub = (seconds) => {
         videoElement.current.currentTime = seconds;
+        setCurrentPosition(seconds);
     }
 
     let updateSubtitle = (e) => {
         let index = 0;
         for (let subtitle of subs) {
+            setCurrentPosition(e.target.currentTime);
             if (e.target.currentTime > subtitle.startTime && e.target.currentTime < subtitle.endTime) {
                 if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
                     videoElement.current.volume = 0.0;
@@ -95,39 +99,38 @@ let StandAloneEditor = (props) => {
 
                 if (!currentText || index !== currentSub) {
                     if (isTalking) {
-                        console.log("PAUSE");
                         videoElement.current.pause();
                         return;
                     }
 
                     if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
-                        videoElement.current.volume = 0.0;
+                        setIsTalking(true);
 
                         let voice = null;
 
                         console.log(subtitle.text);
 
                         if (subtitle.text === "[male_dub]") {
+                            console.log("MAN VOICE");
                             voice = maleVoice;
                         } else {
+                            console.log("WOMAN VOICE");
                             voice = femaleVoice;
                         }
 
                         if (substitution) {
-                            isTalking = true;
                             setCurrentText(substitution);
                             let msg = new SpeechSynthesisUtterance();
                             msg.voice = voice;
                             msg.text = substitution;
                             msg.onend = () => {
-                                isTalking = false;
+                                setIsTalking(false);
                                 let ve = document.getElementById("videoElement");
-                                ve.volume = 1.0;
                                 ve.play();
                             }
                             window.speechSynthesis.speak(msg);
                         } else {
-                            setCurrentText("<Missing audio>");
+                            setCurrentText("[Missing audio]");
                         }
                     } else {
                         setCurrentText(subtitle.text);
@@ -159,17 +162,64 @@ let StandAloneEditor = (props) => {
     return (
         <div className="App">
             <ToastContainer />
-            <h3>Standalone Editor</h3>
+            <h3>Twitch Editor</h3>
             { videoSource ?
                 <div>
                     <div style={{display: "table", margin: "auto"}}>
                         <div style={{display: "table-cell", verticalAlign: "middle"}}>
                             <h3>Video</h3>
-                            <video id="videoElement" ref={videoElement} width="300px" src={videoSource} controls onTimeUpdate={updateSubtitle} />
-                            <div style={{height: "50px", width: "300px"}}>{currentText}</div>
-                            <label>Substitution</label><input type="text" onChange={(e) => {setSubstitution(e.target.value)}} />
+                            <video 
+                                id="videoElement" 
+                                ref={videoElement} 
+                                width="300px" 
+                                src={videoSource} 
+                                muted={isTalking}
+                                onTimeUpdate={updateSubtitle}
+                                onCanPlayThrough={() => {setVideoLength(videoElement.current.duration)}}>
+                                    <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(subs, substitution)} default></track>
+                            </video>
+                            <div>
+                                <button onClick={() => {scrub(Math.max(0, videoElement.current.currentTime - (1/60)))}}>&lt;</button>
+                                <button onClick={() => {videoElement.current.play()}}>Play</button>
+                                <button onClick={() => {videoElement.current.pause()}}>Pause</button>
+                                <button onClick={() => {scrub(Math.min(videoElement.current.duration, videoElement.current.currentTime + (1/60)))}}>&gt;</button>
+                            </div>
+                            <div>
+                                <input 
+                                    type="range" 
+                                    style={{width: "300px", padding: "0px", margin: "0px"}} 
+                                    value={currentPosition} 
+                                    step={1/60}
+                                    max={videoLength}
+                                    onChange={(e) => {scrub(e.target.value)}} />
+                                <div style={{width: "300px", height: "25px", position: "relative"}}>
+                                    <div style={{position: "absolute", left: currentPosition/videoLength * 300 + "px", width: "2px", height: "20px", backgroundColor: "black", zIndex: 9999}} />
+                                    {subs.map((sub, index) => {
+                                        return (
+                                            <div 
+                                            onClick={() => {
+                                                setCurrentSub(index);
+                                            }}
+                                            style={{
+                                                position: "absolute",
+                                                left: (300 * (sub.startTime/videoLength)) + "px",
+                                                width: (300 * ((sub.endTime - sub.startTime)/videoLength)) + "px",
+                                                height: "20px",
+                                                backgroundColor: "yellow",
+                                                border: "1px solid black",
+                                                cursor: "pointer"
+                                            }}>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                            <label>Substitution</label><input type="text" value={substitution} onChange={(e) => {setSubstitution(e.target.value)}} />
                         </div>
                         <div style={{display: "table-cell"}}>
+                            <div>
+                                <label>Video Title</label><input type="text" value={videoName} onChange={(e) => {setVideoName(e.target.value)}} />
+                            </div>
                             <div>
                                 <h3>Current Subtitle</h3>
                                 { currentSub !== null ?
@@ -258,7 +308,7 @@ let StandAloneEditor = (props) => {
                         </div>
                     </div>
                     <hr />
-                    <button onClick={() => {createZip()}} type="button" disabled={buttonsDisabled}>Get Zip File</button>
+                    <button type="button" onClick={() => {createZip()}} disabled={buttonsDisabled}>Download Zip</button>
                 </div>
                 :
                 <div>
@@ -270,4 +320,4 @@ let StandAloneEditor = (props) => {
     );
 }
 
-export default StandAloneEditor;
+export default ZipEditor;

@@ -4,7 +4,7 @@ import {BrowserRouter as Router, Switch, Route, Link, BrowserRouter} from 'react
 import {ToastContainer, toast} from 'react-toastify';
 
 import SubtitleEditor from './routes/SubtitleEditor';
-import StandAloneEditor from './routes/StandAloneEditor';
+import ZipEditor from './routes/ZipEditor';
 import VideoList from './routes/VideoList';
 import VideoView from './routes/VideoView';
 
@@ -21,11 +21,11 @@ let App = (props) => {
                 <hr/>
                 <div style={{minHeight: "50vh"}}>
                     <Switch>
-                        <Route exact path={`${process.env.PUBLIC_URL}/`} component={StandAloneEditor} />
+                        <Route exact path={`${process.env.PUBLIC_URL}/`} component={ZipEditor} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos`} component={VideoList} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos/:id`} component={VideoView} />
                         <Route exact path={`${process.env.PUBLIC_URL}/editor`} component={SubtitleEditor} />
-                        <Route exact path={`${process.env.PUBLIC_URL}/editor/standalone`} component={StandAloneEditor} />
+                        <Route exact path={`${process.env.PUBLIC_URL}/editor/standalone`} component={ZipEditor} />
                     </Switch>
                 </div>
                 <hr/>
