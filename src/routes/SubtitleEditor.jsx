@@ -1,17 +1,21 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import {ToastContainer, toast} from 'react-toastify';
 import {createWebVttDataUri} from '../util/VideoTools';
+
+let isTalking = false;
+let currentIndex = -1;
+let interval;
 
 let SubtitleEditor = (props) => {
     const [videoSource, setVideoSource] = useState("");
     const [subs, setSubs] = useState([]);
     const [videoName, setVideoName] = useState("Video");
     const [currentSub, setCurrentSub] = useState(null);
-    const [currentText, setCurrentText] = useState("");
     const [substitution, setSubstitution] = useState("");
+    // const [currentIndex, setCurrentIndex] = useState(-1);
     const [buttonsDisabled, setButtonsDisabled] = useState(false);
-    const [isTalking, setIsTalking] = useState(false);
+    const [muted, setMuted] = useState(false);
 
     const [videoLength, setVideoLength] = useState(0);
     const [currentPosition, setCurrentPosition] = useState(0);
@@ -25,6 +29,14 @@ let SubtitleEditor = (props) => {
     const femaleVoice = window.speechSynthesis.getVoices().find((element) => {
         return element.name === "Microsoft Zira Desktop - English (United States)";
     });
+
+    let setIsTalking = (b) => {
+        isTalking = b;
+    }
+
+    let setCurrentIndex = (i) => {
+        currentIndex = i;
+    }
 
     let newSub = (startTime) => {
         setSubs([...subs, {
@@ -87,64 +99,82 @@ let SubtitleEditor = (props) => {
         setCurrentPosition(seconds);
     }
 
-    let updateSubtitle = (e) => {
-        let index = 0;
-        for (let subtitle of subs) {
-            setCurrentPosition(e.target.currentTime);
-            if (e.target.currentTime > subtitle.startTime && e.target.currentTime < subtitle.endTime) {
-                if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
-                    videoElement.current.volume = 0.0;
-                } else {
-                    videoElement.current.volume = 1.0;
-                }
+    let speak = (subtitle, text) => {
+        let voice = null;
 
-                if (!currentText || index !== currentSub) {
-                    if (isTalking) {
-                        videoElement.current.pause();
-                        return;
-                    }
+        setIsTalking(true);
 
-                    if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
-                        setIsTalking(true);
+        if (subtitle.text === "[male_dub]") {
+            voice = maleVoice;
+        } else {
+            voice = femaleVoice;
+        }
+        
+        let msg = new SpeechSynthesisUtterance();
+        msg.voice = voice;
+        msg.text = text;
+        msg.onend = () => {
+            setIsTalking(false);
+            let ve = document.getElementById("videoElement");
+            ve.play();
+        }
+        window.speechSynthesis.speak(msg);
+    }
 
-                        let voice = null;
+    let updateSubtitle = (video) => {
+        setCurrentPosition(video.currentTime);
+        let index = subs.findIndex((subtitle) => {
+            return video.currentTime > subtitle.startTime && video.currentTime < subtitle.endTime;
+        });
 
-                        console.log(subtitle.text);
-
-                        if (subtitle.text === "[male_dub]") {
-                            console.log("MAN VOICE");
-                            voice = maleVoice;
-                        } else {
-                            console.log("WOMAN VOICE");
-                            voice = femaleVoice;
-                        }
-
-                        if (substitution) {
-                            setCurrentText(substitution);
-                            let msg = new SpeechSynthesisUtterance();
-                            msg.voice = voice;
-                            msg.text = substitution;
-                            msg.onend = () => {
-                                setIsTalking(false);
-                                let ve = document.getElementById("videoElement");
-                                ve.play();
-                            }
-                            window.speechSynthesis.speak(msg);
-                        } else {
-                            setCurrentText("[Missing audio]");
-                        }
-                    } else {
-                        setCurrentText(subtitle.text);
-                    }
-
-                    setCurrentSub(index);
-                }
+        if (index !== currentIndex) {
+            if (isTalking) {
+                video.pause();
                 return;
             }
-            index++;
-        }
 
-        setCurrentText("");
+            if (currentIndex >= 0) {
+                let currentSubtitle = subs[currentIndex];
+                if (currentSubtitle.text === "[male_dub]" || currentSubtitle.text === "[female_dub]") {
+                    setMuted(false);
+                }
+            }
+
+            if (index >= 0) {
+                let subtitle = subs[index];
+                if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
+                    setMuted(true);
+                    if (substitution) {
+                        speak(subtitle, substitution);
+                    }
+                }
+                setCurrentSub(index);        
+            }
+
+            setCurrentIndex(index);
+        }
+    }
+
+    // let handleFrame = (now, metadata) => {
+    //     let video = document.getElementById("videoElement");
+    //     updateSubtitle(video);
+
+    //     // Re-register the callback to be notified about the next frame.
+    //     video.requestVideoFrameCallback(handleFrame);
+    // };
+
+    let startListener = () => {
+        interval = setInterval(() => {
+            let video = document.getElementById("videoElement");
+            if (video.paused) {
+                return;
+            }
+            updateSubtitle(video);
+        }, 1000/60);
+    }
+
+    let pauseListener = () => {
+        clearInterval(interval);
     }
 
     let upload = async () => {
@@ -191,9 +221,11 @@ let SubtitleEditor = (props) => {
                                 ref={videoElement} 
                                 width="300px" 
                                 src={videoSource} 
-                                muted={isTalking}
-                                onTimeUpdate={updateSubtitle}
-                                onCanPlayThrough={() => {setVideoLength(videoElement.current.duration)}}>
+                                muted={muted}
+                                onPlay={() => {startListener()}}
+                                onPause={() => {pauseListener()}}
+                                onEnded={() => {pauseListener()}}
+                                onCanPlayThrough={() => {setVideoLength(videoElement.current.duration);}}>
                                     <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(subs, substitution)} default></track>
                             </video>
                             <div>
