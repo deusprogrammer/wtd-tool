@@ -18,6 +18,21 @@ export default (props) => {
         return element.name === "Microsoft Zira Desktop - English (United States)";
     });
 
+    useEffect(() => {
+        console.log("Video position changed");
+        videoElement.current.currentTime = props.videoPosition;
+    }, [props.videoPosition]);
+
+    useEffect(() => {
+        if (props.isPlaying) {
+            console.log("Play");
+            videoElement.current.play();
+        } else {
+            console.log("Pause");
+            videoElement.current.pause();
+        }
+    }, [props.isPlaying])
+
     let setIsTalking = (b) => {
         isTalking = b;
     }
@@ -49,33 +64,34 @@ export default (props) => {
     }
 
     let updateSubtitle = (video) => {
-        setCurrentPosition(video.currentTime);
-        let index = subs.findIndex((subtitle) => {
+        props.onVideoPositionChange(video.currentTime);
+        let index = props.subs.findIndex((subtitle) => {
             return video.currentTime > subtitle.startTime && video.currentTime < subtitle.endTime;
         });
 
         if (index !== currentIndex) {
+            console.log("INDEX CHANGED: " + index);
             if (isTalking) {
                 video.pause();
                 return;
             }
 
             if (currentIndex >= 0) {
-                let currentSubtitle = subs[currentIndex];
+                let currentSubtitle = props.subs[currentIndex];
                 if (currentSubtitle.text === "[male_dub]" || currentSubtitle.text === "[female_dub]") {
                     setMuted(false);
                 }
             }
 
             if (index >= 0) {
-                let subtitle = subs[index];
+                let subtitle = props.subs[index];
                 if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
                     setMuted(true);
-                    if (substitution) {
-                        speak(subtitle, substitution);
+                    if (props.substitution) {
+                        speak(subtitle, props.substitution);
                     }
                 }
-                setCurrentSub(index);        
+                props.onIndexChange(index);        
             }
 
             setCurrentIndex(index);
@@ -84,10 +100,8 @@ export default (props) => {
 
     let startListener = () => {
         interval = setInterval(() => {
-            if (videoElement.current.paused) {
-                return;
-            }
-            updateSubtitle(video.current);
+            let video = document.getElementById("videoElement");
+            updateSubtitle(video);
         }, 1000/60);
     }
 
@@ -97,16 +111,17 @@ export default (props) => {
 
     return (
         <div>
-            { videoSource ?
+            { props.videoSource ?
                 <video 
                     id="videoElement" 
                     ref={videoElement} 
                     width="300px" 
-                    src={props.videoSource} 
+                    src={props.videoSource}
                     muted={muted}
                     onPlay={() => {startListener()}}
                     onPause={() => {pauseListener()}}
-                    onEnded={() => {pauseListener()}}>
+                    onEnded={() => {pauseListener()}}
+                    onCanPlayThrough={() => {props.onVideoLoaded(videoElement.current)}}>
                         <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(props.subs, props.substitution)} default></track>
                 </video> : null
             }               

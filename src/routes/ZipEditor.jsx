@@ -1,29 +1,21 @@
 import React, {useState} from 'react';
 import {ToastContainer, toast} from 'react-toastify';
-import {createWebVttDataUri, createPayloadZip} from '../util/VideoTools';
+import WhatTheDubPlayer from '../components/WhatTheDubPlayer';
+import {createPayloadZip} from '../util/VideoTools';
 
 let ZipEditor = (props) => {
     const [videoSource, setVideoSource] = useState("");
     const [subs, setSubs] = useState([]);
     const [videoName, setVideoName] = useState("Video");
     const [currentSub, setCurrentSub] = useState(null);
-    const [currentText, setCurrentText] = useState("");
     const [substitution, setSubstitution] = useState("");
     const [buttonsDisabled, setButtonsDisabled] = useState(false);
-    const [isTalking, setIsTalking] = useState(false);
+
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentPosition, setCurrentPosition] = useState(0);
+    const [currentSliderPosition, setCurrentSliderPosition] = useState(0);
 
     const [videoLength, setVideoLength] = useState(0);
-    const [currentPosition, setCurrentPosition] = useState(0);
-
-    const videoElement = React.createRef();
-
-    const maleVoice = window.speechSynthesis.getVoices().find((element) => {
-        return element.name === "Microsoft David Desktop - English (United States)";
-    });
-
-    const femaleVoice = window.speechSynthesis.getVoices().find((element) => {
-        return element.name === "Microsoft Zira Desktop - English (United States)";
-    });
 
     let newSub = (startTime) => {
         setSubs([...subs, {
@@ -82,68 +74,8 @@ let ZipEditor = (props) => {
     }
 
     let scrub = (seconds) => {
-        videoElement.current.currentTime = seconds;
         setCurrentPosition(seconds);
-    }
-
-    let updateSubtitle = (e) => {
-        let index = 0;
-        for (let subtitle of subs) {
-            setCurrentPosition(e.target.currentTime);
-            if (e.target.currentTime > subtitle.startTime && e.target.currentTime < subtitle.endTime) {
-                if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
-                    videoElement.current.volume = 0.0;
-                } else {
-                    videoElement.current.volume = 1.0;
-                }
-
-                if (!currentText || index !== currentSub) {
-                    if (isTalking) {
-                        videoElement.current.pause();
-                        return;
-                    }
-
-                    if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
-                        setIsTalking(true);
-
-                        let voice = null;
-
-                        console.log(subtitle.text);
-
-                        if (subtitle.text === "[male_dub]") {
-                            console.log("MAN VOICE");
-                            voice = maleVoice;
-                        } else {
-                            console.log("WOMAN VOICE");
-                            voice = femaleVoice;
-                        }
-
-                        if (substitution) {
-                            setCurrentText(substitution);
-                            let msg = new SpeechSynthesisUtterance();
-                            msg.voice = voice;
-                            msg.text = substitution;
-                            msg.onend = () => {
-                                setIsTalking(false);
-                                let ve = document.getElementById("videoElement");
-                                ve.play();
-                            }
-                            window.speechSynthesis.speak(msg);
-                        } else {
-                            setCurrentText("[Missing audio]");
-                        }
-                    } else {
-                        setCurrentText(subtitle.text);
-                    }
-
-                    setCurrentSub(index);
-                }
-                return;
-            }
-            index++;
-        }
-
-        setCurrentText("");
+        setCurrentSliderPosition(seconds);
     }
 
     let createZip = async () => {
@@ -160,40 +92,44 @@ let ZipEditor = (props) => {
     }
 
     return (
-        <div className="App">
-            <ToastContainer />
+        <div>
             <h3>Twitch Editor</h3>
             { videoSource ?
                 <div>
                     <div style={{display: "table", margin: "auto"}}>
                         <div style={{display: "table-cell", verticalAlign: "middle"}}>
                             <h3>Video</h3>
-                            <video 
-                                id="videoElement" 
-                                ref={videoElement} 
-                                width="300px" 
-                                src={videoSource} 
-                                muted={isTalking}
-                                onTimeUpdate={updateSubtitle}
-                                onCanPlayThrough={() => {setVideoLength(videoElement.current.duration)}}>
-                                    <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(subs, substitution)} default></track>
-                            </video>
+                            <WhatTheDubPlayer
+                                videoSource={videoSource}
+                                isPlaying={isPlaying}
+                                videoPosition={currentPosition}
+                                subs={subs}
+                                substitution={substitution}
+                                onIndexChange={(index) => {
+                                    setCurrentSub(index);
+                                }}
+                                onVideoPositionChange={(position) => {
+                                    setCurrentSliderPosition(position);
+                                }}
+                                onVideoLoaded={(video) => {
+                                    setVideoLength(video.duration);
+                                }} />
                             <div>
-                                <button onClick={() => {scrub(Math.max(0, videoElement.current.currentTime - (1/60)))}}>&lt;</button>
-                                <button onClick={() => {videoElement.current.play()}}>Play</button>
-                                <button onClick={() => {videoElement.current.pause()}}>Pause</button>
-                                <button onClick={() => {scrub(Math.min(videoElement.current.duration, videoElement.current.currentTime + (1/60)))}}>&gt;</button>
+                                <button onClick={() => {scrub(Math.max(0, currentPosition - (1/60)))}}>&lt;</button>
+                                <button onClick={() => {setIsPlaying(true);}}>Play</button>
+                                <button onClick={() => {setIsPlaying(false);}}>Pause</button>
+                                <button onClick={() => {scrub(currentPosition + (1/60))}}>&gt;</button>
                             </div>
                             <div>
                                 <input 
                                     type="range" 
                                     style={{width: "300px", padding: "0px", margin: "0px"}} 
-                                    value={currentPosition} 
+                                    value={currentSliderPosition} 
                                     step={1/60}
                                     max={videoLength}
                                     onChange={(e) => {scrub(e.target.value)}} />
                                 <div style={{width: "300px", height: "25px", position: "relative"}}>
-                                    <div style={{position: "absolute", left: currentPosition/videoLength * 300 + "px", width: "2px", height: "20px", backgroundColor: "black", zIndex: 9999}} />
+                                    <div style={{position: "absolute", left: currentSliderPosition/videoLength * 300 + "px", width: "2px", height: "20px", backgroundColor: "black", zIndex: 9999}} />
                                     {subs.map((sub, index) => {
                                         return (
                                             <div 
@@ -227,7 +163,7 @@ let ZipEditor = (props) => {
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <button type="button" onClick={() => {setStart(videoElement.current.currentTime)}}>Set Start</button>
+                                                    <button type="button" onClick={() => {setStart(currentSliderPosition)}}>Set Start</button>
                                                 </td>
                                                 <td>
                                                     <span>{convertSecondsToTimestamp(subs[currentSub].startTime)}</span>
@@ -242,7 +178,7 @@ let ZipEditor = (props) => {
                                             </tr>
                                             <tr>
                                                 <td>
-                                                    <button type="button" onClick={() => {setEnd(videoElement.current.currentTime)}}>Set End</button>
+                                                    <button type="button" onClick={() => {setEnd(currentSliderPosition)}}>Set End</button>
                                                 </td>
                                                 <td>
                                                     <span>{convertSecondsToTimestamp(subs[currentSub].endTime)}</span>
@@ -303,12 +239,12 @@ let ZipEditor = (props) => {
                                     }
                                     </tbody>
                                 </table>
-                                <button type="button" onClick={() => {newSub(videoElement.current.currentTime)}}>New Subtitle</button>
+                                <button type="button" onClick={() => {newSub(currentSliderPosition)}}>New Subtitle</button>
                             </div>
                         </div>
                     </div>
                     <hr />
-                    <button type="button" onClick={() => {createZip()}} disabled={buttonsDisabled}>Download Zip</button>
+                    <button type="button" onClick={() => {createZip()}} disabled={buttonsDisabled}>Create Zip</button>
                 </div>
                 :
                 <div>
@@ -319,5 +255,6 @@ let ZipEditor = (props) => {
         </div>
     );
 }
+
 
 export default ZipEditor;

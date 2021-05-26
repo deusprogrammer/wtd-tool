@@ -1,11 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import {ToastContainer, toast} from 'react-toastify';
-import {createWebVttDataUri} from '../util/VideoTools';
-
-let isTalking = false;
-let currentIndex = -1;
-let interval;
+import WhatTheDubPlayer from '../components/WhatTheDubPlayer';
 
 let SubtitleEditor = (props) => {
     const [videoSource, setVideoSource] = useState("");
@@ -13,30 +9,13 @@ let SubtitleEditor = (props) => {
     const [videoName, setVideoName] = useState("Video");
     const [currentSub, setCurrentSub] = useState(null);
     const [substitution, setSubstitution] = useState("");
-    // const [currentIndex, setCurrentIndex] = useState(-1);
     const [buttonsDisabled, setButtonsDisabled] = useState(false);
-    const [muted, setMuted] = useState(false);
+
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentPosition, setCurrentPosition] = useState(0);
+    const [currentSliderPosition, setCurrentSliderPosition] = useState(0);
 
     const [videoLength, setVideoLength] = useState(0);
-    const [currentPosition, setCurrentPosition] = useState(0);
-
-    const videoElement = React.createRef();
-
-    const maleVoice = window.speechSynthesis.getVoices().find((element) => {
-        return element.name === "Microsoft David Desktop - English (United States)";
-    });
-
-    const femaleVoice = window.speechSynthesis.getVoices().find((element) => {
-        return element.name === "Microsoft Zira Desktop - English (United States)";
-    });
-
-    let setIsTalking = (b) => {
-        isTalking = b;
-    }
-
-    let setCurrentIndex = (i) => {
-        currentIndex = i;
-    }
 
     let newSub = (startTime) => {
         setSubs([...subs, {
@@ -95,86 +74,8 @@ let SubtitleEditor = (props) => {
     }
 
     let scrub = (seconds) => {
-        videoElement.current.currentTime = seconds;
         setCurrentPosition(seconds);
-    }
-
-    let speak = (subtitle, text) => {
-        let voice = null;
-
-        setIsTalking(true);
-
-        if (subtitle.text === "[male_dub]") {
-            voice = maleVoice;
-        } else {
-            voice = femaleVoice;
-        }
-        
-        let msg = new SpeechSynthesisUtterance();
-        msg.voice = voice;
-        msg.text = text;
-        msg.onend = () => {
-            setIsTalking(false);
-            let ve = document.getElementById("videoElement");
-            ve.play();
-        }
-        window.speechSynthesis.speak(msg);
-    }
-
-    let updateSubtitle = (video) => {
-        setCurrentPosition(video.currentTime);
-        let index = subs.findIndex((subtitle) => {
-            return video.currentTime > subtitle.startTime && video.currentTime < subtitle.endTime;
-        });
-
-        if (index !== currentIndex) {
-            if (isTalking) {
-                video.pause();
-                return;
-            }
-
-            if (currentIndex >= 0) {
-                let currentSubtitle = subs[currentIndex];
-                if (currentSubtitle.text === "[male_dub]" || currentSubtitle.text === "[female_dub]") {
-                    setMuted(false);
-                }
-            }
-
-            if (index >= 0) {
-                let subtitle = subs[index];
-                if (subtitle.text === "[male_dub]" || subtitle.text === "[female_dub]") {
-                    setMuted(true);
-                    if (substitution) {
-                        speak(subtitle, substitution);
-                    }
-                }
-                setCurrentSub(index);        
-            }
-
-            setCurrentIndex(index);
-        }
-    }
-
-    // let handleFrame = (now, metadata) => {
-    //     let video = document.getElementById("videoElement");
-    //     updateSubtitle(video);
-
-    //     // Re-register the callback to be notified about the next frame.
-    //     video.requestVideoFrameCallback(handleFrame);
-    // };
-
-    let startListener = () => {
-        interval = setInterval(() => {
-            let video = document.getElementById("videoElement");
-            if (video.paused) {
-                return;
-            }
-            updateSubtitle(video);
-        }, 1000/60);
-    }
-
-    let pauseListener = () => {
-        clearInterval(interval);
+        setCurrentSliderPosition(seconds);
     }
 
     let upload = async () => {
@@ -208,42 +109,44 @@ let SubtitleEditor = (props) => {
     }
 
     return (
-        <div className="App">
-            <ToastContainer />
+        <div>
             <h3>Twitch Editor</h3>
             { videoSource ?
                 <div>
                     <div style={{display: "table", margin: "auto"}}>
                         <div style={{display: "table-cell", verticalAlign: "middle"}}>
                             <h3>Video</h3>
-                            <video 
-                                id="videoElement" 
-                                ref={videoElement} 
-                                width="300px" 
-                                src={videoSource} 
-                                muted={muted}
-                                onPlay={() => {startListener()}}
-                                onPause={() => {pauseListener()}}
-                                onEnded={() => {pauseListener()}}
-                                onCanPlayThrough={() => {setVideoLength(videoElement.current.duration);}}>
-                                    <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(subs, substitution)} default></track>
-                            </video>
+                            <WhatTheDubPlayer
+                                videoSource={videoSource}
+                                isPlaying={isPlaying}
+                                videoPosition={currentPosition}
+                                subs={subs}
+                                substitution={substitution}
+                                onIndexChange={(index) => {
+                                    setCurrentSub(index);
+                                }}
+                                onVideoPositionChange={(position) => {
+                                    setCurrentSliderPosition(position);
+                                }}
+                                onVideoLoaded={(video) => {
+                                    setVideoLength(video.duration);
+                                }} />
                             <div>
-                                <button onClick={() => {scrub(Math.max(0, videoElement.current.currentTime - (1/60)))}}>&lt;</button>
-                                <button onClick={() => {videoElement.current.play()}}>Play</button>
-                                <button onClick={() => {videoElement.current.pause()}}>Pause</button>
-                                <button onClick={() => {scrub(Math.min(videoElement.current.duration, videoElement.current.currentTime + (1/60)))}}>&gt;</button>
+                                <button onClick={() => {scrub(Math.max(0, currentPosition - (1/60)))}}>&lt;</button>
+                                <button onClick={() => {setIsPlaying(true);}}>Play</button>
+                                <button onClick={() => {setIsPlaying(false);}}>Pause</button>
+                                <button onClick={() => {scrub(currentPosition + (1/60))}}>&gt;</button>
                             </div>
                             <div>
                                 <input 
                                     type="range" 
                                     style={{width: "300px", padding: "0px", margin: "0px"}} 
-                                    value={currentPosition} 
+                                    value={currentSliderPosition} 
                                     step={1/60}
                                     max={videoLength}
                                     onChange={(e) => {scrub(e.target.value)}} />
                                 <div style={{width: "300px", height: "25px", position: "relative"}}>
-                                    <div style={{position: "absolute", left: currentPosition/videoLength * 300 + "px", width: "2px", height: "20px", backgroundColor: "black", zIndex: 9999}} />
+                                    <div style={{position: "absolute", left: currentSliderPosition/videoLength * 300 + "px", width: "2px", height: "20px", backgroundColor: "black", zIndex: 9999}} />
                                     {subs.map((sub, index) => {
                                         return (
                                             <div 
@@ -277,7 +180,7 @@ let SubtitleEditor = (props) => {
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <button type="button" onClick={() => {setStart(videoElement.current.currentTime)}}>Set Start</button>
+                                                    <button type="button" onClick={() => {setStart(currentSliderPosition)}}>Set Start</button>
                                                 </td>
                                                 <td>
                                                     <span>{convertSecondsToTimestamp(subs[currentSub].startTime)}</span>
@@ -292,7 +195,7 @@ let SubtitleEditor = (props) => {
                                             </tr>
                                             <tr>
                                                 <td>
-                                                    <button type="button" onClick={() => {setEnd(videoElement.current.currentTime)}}>Set End</button>
+                                                    <button type="button" onClick={() => {setEnd(currentSliderPosition)}}>Set End</button>
                                                 </td>
                                                 <td>
                                                     <span>{convertSecondsToTimestamp(subs[currentSub].endTime)}</span>
@@ -353,7 +256,7 @@ let SubtitleEditor = (props) => {
                                     }
                                     </tbody>
                                 </table>
-                                <button type="button" onClick={() => {newSub(videoElement.current.currentTime)}}>New Subtitle</button>
+                                <button type="button" onClick={() => {newSub(currentSliderPosition)}}>New Subtitle</button>
                             </div>
                         </div>
                     </div>
