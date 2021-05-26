@@ -76,6 +76,7 @@ let SubtitleEditor = (props) => {
     let scrub = (seconds) => {
         setCurrentPosition(seconds);
         setCurrentSliderPosition(seconds);
+        setIsPlaying(false);
     }
 
     let upload = async () => {
@@ -122,6 +123,9 @@ let SubtitleEditor = (props) => {
                                 videoPosition={currentPosition}
                                 subs={subs}
                                 substitution={substitution}
+                                onEnd={() => {
+                                    setIsPlaying(false);
+                                }}
                                 onIndexChange={(index) => {
                                     setCurrentSub(index);
                                 }}
@@ -133,8 +137,7 @@ let SubtitleEditor = (props) => {
                                 }} />
                             <div>
                                 <button onClick={() => {scrub(Math.max(0, currentPosition - (1/60)))}}>&lt;</button>
-                                <button onClick={() => {setIsPlaying(true);}}>Play</button>
-                                <button onClick={() => {setIsPlaying(false);}}>Pause</button>
+                                {!isPlaying ? <button onClick={() => {setIsPlaying(true);}}>Play</button> :<button onClick={() => {setIsPlaying(false);}}>Pause</button>}
                                 <button onClick={() => {scrub(currentPosition + (1/60))}}>&gt;</button>
                             </div>
                             <div>

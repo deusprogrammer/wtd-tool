@@ -120,7 +120,7 @@ export default (props) => {
                     muted={muted}
                     onPlay={() => {startListener()}}
                     onPause={() => {pauseListener()}}
-                    onEnded={() => {pauseListener()}}
+                    onEnded={() => {pauseListener(); props.onEnd();}}
                     onCanPlayThrough={() => {props.onVideoLoaded(videoElement.current)}}>
                         <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(props.subs, props.substitution)} default></track>
                 </video> : null
