@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {createWebVttDataUri} from '../util/VideoTools';
 
 let isTalking = false;
+let hasEnded = false;
 let currentIndex = -1;
 let interval;
 
@@ -59,6 +60,10 @@ export default (props) => {
             setIsTalking(false);
             let ve = document.getElementById("videoElement");
             ve.play();
+
+            if (hasEnded) {
+                props.onEnd();
+            }
         }
         window.speechSynthesis.speak(msg);
     }
@@ -120,7 +125,14 @@ export default (props) => {
                     muted={muted}
                     onPlay={() => {startListener()}}
                     onPause={() => {pauseListener()}}
-                    onEnded={() => {pauseListener(); props.onEnd();}}
+                    onEnded={() => {
+                        if (!isTalking) {
+                            pauseListener(); 
+                            props.onEnd();
+                        } else {
+                            hasEnded = true;
+                        }
+                    }}
                     onCanPlayThrough={() => {props.onVideoLoaded(videoElement.current)}}>
                         <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(props.subs, props.substitution)} default></track>
                 </video> : null
