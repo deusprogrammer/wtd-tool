@@ -22,6 +22,7 @@ export default (props) => {
     useEffect(() => {
         console.log("Video position changed");
         videoElement.current.currentTime = props.videoPosition;
+        isTalking = false;
     }, [props.videoPosition]);
 
     useEffect(() => {

@@ -170,7 +170,7 @@ let SubtitleEditor = (props) => {
                                     })}
                                 </div>
                             </div>
-                            <label>Substitution</label><input type="text" value={substitution} onChange={(e) => {setSubstitution(e.target.value)}} />
+                            {/* <label>Substitution</label><input type="text" value={substitution} onChange={(e) => {setSubstitution(e.target.value)}} /> */}
                         </div>
                         <div style={{display: "table-cell"}}>
                             <div>
@@ -216,7 +216,12 @@ let SubtitleEditor = (props) => {
                                                     <label>Subtitle:</label>
                                                 </td>
                                                 <td>
-                                                <input type="text" value={subs[currentSub].text} onChange={(e) => {setText(e.target.value)}} />
+                                                    <input 
+                                                        type="text"
+                                                        style={{width: "200px"}}  
+                                                        value={subs[currentSub].text} 
+                                                        onChange={(e) => {setText(e.target.value)}} 
+                                                        placeholder="Text, [male_dub], or [female_dub]" />
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -241,7 +246,9 @@ let SubtitleEditor = (props) => {
                                     </thead>
                                     <tbody>
                                     {
-                                        subs.map((sub, index) => {
+                                        subs.sort((a, b) => {
+                                            return a.startTime - b.startTime;
+                                        }).map((sub, index) => {
                                             return (
                                                 <tr 
                                                     style={{
