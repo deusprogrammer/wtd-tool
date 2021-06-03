@@ -82,7 +82,7 @@ let SubtitleEditor = (props) => {
     let upload = async () => {
         try {
             setButtonsDisabled(true);
-            let {_id} = await axios.post("https://deusprogrammer.com/api/img-svc/media", {
+            let res = await axios.post("https://deusprogrammer.com/api/img-svc/media", {
                 title: videoName,
                 mimeType: "video/mp4",
                 imagePayload: videoSource.substring(videoSource.indexOf(',') + 1)
@@ -92,6 +92,9 @@ let SubtitleEditor = (props) => {
                     "X-Access-Token": localStorage.getItem("accessToken")
                 }
             });
+
+            let {_id} = res.data;
+
             await axios.post("https://deusprogrammer.com/api/dubs/videos", {
                 name: videoName,
                 subtitles: subs,
