@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { convertSubtitlesToSrt } from '../util/VideoTools';
+import WhatTheDubPlayer from '../components/WhatTheDubPlayer';
 
 let VideoView = (props) => {
     const [videoDetails, setVideoDetails] = useState(null);
@@ -19,7 +20,19 @@ let VideoView = (props) => {
         <div>
             {videoDetails ? <div>
                 <div>Name: {videoDetails.name}</div>
-                <div><video src={videoDetails.videoUrl} controls/></div>
+                <div>
+                    {/* <video src={videoDetails.videoUrl} controls/> */}
+                    <WhatTheDubPlayer
+                        videoSource={videoDetails.videoUrl}
+                        isPlaying={false}
+                        videoPosition={0}
+                        subs={videoDetails.subtitles}
+                        onEnd={() => {}}
+                        onIndexChange={(index) => {}}
+                        onVideoPositionChange={(position) => {}}
+                        onVideoLoaded={(video) => {}}
+                        controls={true} />
+                </div>
                 <pre>{convertSubtitlesToSrt(videoDetails.subtitles)}</pre>
             </div> : null}
         </div>

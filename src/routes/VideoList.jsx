@@ -27,16 +27,20 @@ let VideoList = () => {
     return (
         <div>
             <h3>Video List</h3>
-            {videos.map((video) => {
-                return (
-                    <div>
-                        {video.name}&nbsp;
-                        <button type="button" onClick={() => {navigator.clipboard.writeText(video._id);toast("ID Copied!", {type: "info"})}}>Get ID</button>
-                        <button type="button" onClick={() => {getZip(video._id, video.name)}}>Download Zip</button>
-                        <Link to={`${process.env.PUBLIC_URL}/videos/${video._id}`}><button type="button">Open Details</button></Link>
-                    </div>
-                )
-            })}
+            <table style={{margin: "auto"}}>
+                <tbody>
+                    {videos.map((video) => {
+                        return (
+                            <tr>
+                                <td style={{textAlign: "left"}}>{video.name}</td>
+                                <td><button type="button" onClick={() => {navigator.clipboard.writeText(video._id);toast("ID Copied!", {type: "info"})}}>Get ID</button></td>
+                                <td><button type="button" onClick={() => {getZip(video._id, video.name)}}>Download Zip</button></td>
+                                <td><Link to={`${process.env.PUBLIC_URL}/videos/${video._id}`}><button type="button">Open Details</button></Link></td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 }

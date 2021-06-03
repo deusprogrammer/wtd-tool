@@ -134,6 +134,7 @@ export default (props) => {
                             hasEnded = true;
                         }
                     }}
+                    controls={props.controls}
                     onCanPlayThrough={() => {props.onVideoLoaded(videoElement.current)}}>
                         <track label="English" kind="subtitles" srclang="en" src={createWebVttDataUri(props.subs, props.substitution)} default></track>
                 </video> : null
