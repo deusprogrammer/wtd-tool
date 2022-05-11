@@ -48,13 +48,19 @@ export let createWebVttDataUri = (subtitles, substitution) => {
     return "data:text/vtt;base64," + btoa(convertSubtitlesToWebVtt(subtitles, substitution));
 }
 
-export let createPayloadZip = async (base64ByteStream, subtitles) => {
+export let createPayloadZip = async (base64ByteStream, subtitles, title, clipNumber = 1, type) => {
     let zip = new JSZip();
+    let folderName = "WhatTheDub_Data";
+
+    if (type === "rifftrax") {
+        folderName = "RiffTraxTheGame_Data";
+    }
+
     let root = zip
-        .folder("WhatTheDub_Data")
+        .folder(folderName)
         .folder("StreamingAssets");
 
-    let baseFileName = `${uuidv4()}`;
+    let baseFileName = title ? title.replace(" ", "_") + `-Clip${`${clipNumber}`.padStart(3, "0")}` : `${uuidv4()}`;
     
     root
         .folder("Subtitles")

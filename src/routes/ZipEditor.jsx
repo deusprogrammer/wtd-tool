@@ -1,9 +1,13 @@
 import React, {useState} from 'react';
-import {ToastContainer, toast} from 'react-toastify';
+import {toast} from 'react-toastify';
 import WhatTheDubPlayer from '../components/WhatTheDubPlayer';
 import {createPayloadZip} from '../util/VideoTools';
+import {useParams} from 'react-router';
 
-let ZipEditor = (props) => {
+let ZipEditor = () => {
+    const params = useParams();
+
+    const [clipNumber, setClipNumber] = useState(1);
     const [videoSource, setVideoSource] = useState("");
     const [subs, setSubs] = useState([]);
     const [videoName, setVideoName] = useState("Video");
@@ -16,6 +20,14 @@ let ZipEditor = (props) => {
     const [currentSliderPosition, setCurrentSliderPosition] = useState(0);
 
     const [videoLength, setVideoLength] = useState(0);
+
+    let placeholder;
+
+    if (params.type === "rifftrax") {
+        placeholder = "Text or [Insert Riff Here]";
+    } else if (params.type === "whatthedub") {
+        placeholder = "Text, [male_dub], or [female_dub]";
+    }
 
     let newSub = (startTime) => {
         setSubs([...subs, {
@@ -79,20 +91,10 @@ let ZipEditor = (props) => {
         setIsPlaying(false);
     }
 
-    let createZip = async (isRifftrax = false) => {
+    let createZip = async () => {
         try {
-            let subtitles = subs;
-            if (isRifftrax) {
-                subtitles = subtitles.map(({startTime, endTime, text}) => {
-                    return {
-                        startTime, 
-                        endTime, 
-                        text: text.replace(/\[(fe)*male_dub\]/, "[Insert Riff Here]")
-                    }
-                });
-            }
             setButtonsDisabled(true);
-            createPayloadZip(videoSource.substring(videoSource.indexOf(',') + 1), subtitles);
+            createPayloadZip(videoSource.substring(videoSource.indexOf(',') + 1), subs, videoName, clipNumber, params.type);
             setButtonsDisabled(false);
 
             toast(`Zip file created successfully!`, {type: "info"});
@@ -104,7 +106,7 @@ let ZipEditor = (props) => {
 
     return (
         <div>
-            <h3>Twitch Editor</h3>
+            <h3>Dub Editor</h3>
             { videoSource ?
                 <div>
                     <div style={{display: "table", margin: "auto"}}>
@@ -167,7 +169,15 @@ let ZipEditor = (props) => {
                         </div>
                         <div style={{display: "table-cell"}}>
                             <div>
-                                <label>Video Title</label><input type="text" value={videoName} onChange={(e) => {setVideoName(e.target.value)}} />
+                                <h3>Clip Metadata</h3>
+                                <table>
+                                    <tr>
+                                        <td>Video Title</td><td><input type="text" value={videoName} onChange={(e) => {setVideoName(e.target.value)}} /></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Clip Number</td><td><input type="number" min={1} max={999} maxLength={3} value={clipNumber} onChange={(e) => {setClipNumber(Math.min(e.target.value, 999))}} /></td>
+                                    </tr>
+                                </table>
                             </div>
                             <div>
                                 <h3>Current Subtitle</h3>
@@ -209,12 +219,28 @@ let ZipEditor = (props) => {
                                                     <label>Subtitle:</label>
                                                 </td>
                                                 <td>
-                                                <input 
-                                                    type="text"
-                                                    style={{width: "200px"}} 
-                                                    value={subs[currentSub].text} 
-                                                    onChange={(e) => {setText(e.target.value)}} 
-                                                    placeholder="Text, [male_dub], or [female_dub]" />
+                                                    <input 
+                                                        type="text"
+                                                        style={{width: "200px"}} 
+                                                        value={subs[currentSub].text} 
+                                                        onChange={(e) => {setText(e.target.value)}} 
+                                                        placeholder={placeholder} /><br />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    Actions:
+                                                </td>
+                                                <td>
+                                                    {params.type === "whatthedub" ?
+                                                        <>
+                                                            <button onClick={(e) => {setText("[male_dub]")}}>Make Male Dub</button>
+                                                            <button onClick={(e) => {setText("[female_dub]")}}>Make Female Dub</button>
+                                                        </> :
+                                                        <>
+                                                            <button onClick={(e) => {setText("[Insert Riff Here]")}}>Make Riff</button>
+                                                        </>
+                                                    }
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -264,8 +290,7 @@ let ZipEditor = (props) => {
                         </div>
                     </div>
                     <hr />
-                    <button type="button" onClick={() => {createZip()}} disabled={buttonsDisabled}>Create Zip (What the Dub)</button>
-                    <button type="button" onClick={() => {createZip(true)}} disabled={buttonsDisabled}>Create Zip (Rifftrax)</button>
+                    <button type="button" onClick={() => {createZip()}} disabled={buttonsDisabled}>Create Zip</button>
                 </div>
                 :
                 <div>

@@ -9,6 +9,7 @@ import VideoList from './routes/VideoList';
 import VideoView from './routes/VideoView';
 
 import 'react-toastify/dist/ReactToastify.css';
+import TypeSelection from './routes/TypeSelection';
 
 let App = (props) => {
     return (
@@ -21,7 +22,8 @@ let App = (props) => {
                 <hr/>
                 <div style={{minHeight: "50vh"}}>
                     <Switch>
-                        <Route exact path={`${process.env.PUBLIC_URL}/`} component={ZipEditor} />
+                        <Route exact path={`${process.env.PUBLIC_URL}/`} component={TypeSelection} />
+                        <Route exact path={`${process.env.PUBLIC_URL}/create/:type`} component={ZipEditor} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos`} component={VideoList} />
                         <Route exact path={`${process.env.PUBLIC_URL}/videos/:id`} component={VideoView} />
                         <Route exact path={`${process.env.PUBLIC_URL}/editor`} component={SubtitleEditor} />
