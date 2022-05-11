@@ -17,7 +17,7 @@ let App = (props) => {
             <Router>
                 <h1>What the Dub Tools</h1>
                 <hr/>
-                <div>v1.0.0a</div>
+                <div>v1.5.0b</div>
                 <hr/>
                 <div style={{minHeight: "50vh"}}>
                     <Switch>

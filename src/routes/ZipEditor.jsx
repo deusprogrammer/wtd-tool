@@ -79,10 +79,20 @@ let ZipEditor = (props) => {
         setIsPlaying(false);
     }
 
-    let createZip = async () => {
+    let createZip = async (isRifftrax = false) => {
         try {
+            let subtitles = subs;
+            if (isRifftrax) {
+                subtitles = subtitles.map(({startTime, endTime, text}) => {
+                    return {
+                        startTime, 
+                        endTime, 
+                        text: text.replace(/\[(fe)*male_dub\]/, "[Insert Riff Here]")
+                    }
+                });
+            }
             setButtonsDisabled(true);
-            createPayloadZip(videoSource.substring(videoSource.indexOf(',') + 1), subs);
+            createPayloadZip(videoSource.substring(videoSource.indexOf(',') + 1), subtitles);
             setButtonsDisabled(false);
 
             toast(`Zip file created successfully!`, {type: "info"});
@@ -254,7 +264,8 @@ let ZipEditor = (props) => {
                         </div>
                     </div>
                     <hr />
-                    <button type="button" onClick={() => {createZip()}} disabled={buttonsDisabled}>Create Zip</button>
+                    <button type="button" onClick={() => {createZip()}} disabled={buttonsDisabled}>Create Zip (What the Dub)</button>
+                    <button type="button" onClick={() => {createZip(true)}} disabled={buttonsDisabled}>Create Zip (Rifftrax)</button>
                 </div>
                 :
                 <div>
